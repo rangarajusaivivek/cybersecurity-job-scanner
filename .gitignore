@@ -1,0 +1,37 @@
+# ── SECRETS (NEVER commit these) ──────────────────────────────
+.env
+config/config.yaml
+config/google_service_account.json
+*.key
+*.pem
+
+# ── DATA (personal job search data — stays local) ──────────────
+data/
+!data/.gitkeep
+
+# ── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+dist/
+build/
+
+# ── Browser automation ─────────────────────────────────────────
+.playwright/
+browser_data/
+cookies/
+*.cookie
+
+# ── Logs ───────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,224 @@
+# ─────────────────────────────────────────────────────────────
+# job_scanner/config/config.example.yaml
+# Copy to config.yaml and fill in your details
+# ─────────────────────────────────────────────────────────────
+
+# ── CANDIDATE PROFILE ──────────────────────────────────────────
+candidate:
+  name: "Sai Vivek Rangaraju"
+  email: "rangarajusaivivek@gmail.com"
+  phone: "937-242-5167"
+  location: "Fairborn, OH"
+  linkedin: "https://linkedin.com/in/rangarajusaivivek"
+  github: "https://github.com/rangarajusaivivek"
+  portfolio: "https://rangarajusaivivek.github.io"
+  thesis_url: "https://etd.ohiolink.edu/acprod/odb_etd/etd/r/1501/10?clear=10&p10_accession_num=wright1780358128143017"
+  work_auth: "F-1 OPT"
+  degree: "MS Cybersecurity, Wright State University (May 2026)"
+  gpa: "3.2/4.0"
+  certs: ["CEH", "Azure Fundamentals", "Google Cybersecurity", "CNSP", "ACP", "OPSWAT CIP"]
+  skills: ["VAPT", "Penetration Testing", "SOC Analysis", "AppSec", "Python", "Burp Suite", "Nmap", "Metasploit", "Splunk", "SIEM"]
+  experience: "6 months VAPT internship at Ryna Group — 5+ ASP.NET apps tested, 20% risk reduction"
+  publications: "OhioLINK MS Thesis (2026) + Computers & Security Journal (Elsevier) + Patent"
+
+# ── API KEYS (set in .env instead for security) ──────────────
+apis:
+  anthropic_key: "${ANTHROPIC_API_KEY}"       # For email generation + scoring
+  hunter_key: "${HUNTER_API_KEY}"              # For finding hiring manager emails (free 25/mo)
+  sendgrid_key: "${SENDGRID_API_KEY}"          # For sending digest email
+  telegram_bot_token: "${TELEGRAM_BOT_TOKEN}"  # Alternative to email digest
+  telegram_chat_id: "${TELEGRAM_CHAT_ID}"      # Your Telegram chat ID
+
+# ── JOB SEARCH SETTINGS ────────────────────────────────────────
+search:
+  max_age_hours: 24          # Only jobs posted in last 24 hours
+  min_match_score: 60        # Minimum match score to include (0-100)
+  max_jobs_per_run: 50       # Cap per daily run
+  apply_auto: false          # Set true to enable auto-apply (Simplify)
+  
+  # Role titles to search for (exact + variations)
+  target_roles:
+    - "SOC Analyst"
+    - "Security Analyst"
+    - "Cybersecurity Analyst"
+    - "Application Security Analyst"
+    - "AppSec Engineer"
+    - "Penetration Tester"
+    - "Security Engineer"
+    - "Security Researcher"
+    - "Information Security Analyst"
+    - "Junior Penetration Tester"
+    - "Threat Intelligence Analyst"
+    - "Incident Response Analyst"
+
+  # MUST exclude — these disqualify a role immediately
+  exclude_keywords:
+    - "clearance required"
+    - "security clearance"
+    - "TS/SCI"
+    - "Top Secret"
+    - "US citizen"
+    - "US citizenship required"
+    - "must be citizen"
+    - "permanent resident only"
+    - "active clearance"
+    - "Senior"          # Exclude senior roles (too experienced)
+    - "10+ years"
+    - "8+ years"
+    - "7+ years"
+
+  # Strong positive signals
+  include_signals:
+    - "OPT"
+    - "visa sponsorship"
+    - "sponsor"
+    - "H1B"
+    - "international students"
+    - "work authorization"
+    - "entry level"
+    - "new grad"
+    - "recent graduate"
+    - "0-2 years"
+    - "1-3 years"
+    - "junior"
+
+  # Locations (remote always included)
+  locations:
+    - "Remote"
+    - "Ohio"
+    - "Fairborn"
+    - "Dayton"
+    - "Columbus"
+    - "Cleveland"
+    - "United States"
+
+# ── PLATFORMS TO SCAN ──────────────────────────────────────────
+platforms:
+  linkedin:
+    enabled: true
+    url: "https://www.linkedin.com/jobs/search"
+    priority: 1
+    method: "api"   # Uses LinkedIn job search API endpoints
+    
+  indeed:
+    enabled: true
+    url: "https://www.indeed.com"
+    priority: 1
+    method: "scrape"
+    
+  dice:
+    enabled: true
+    url: "https://www.dice.com"
+    priority: 1
+    method: "scrape"
+    
+  handshake:
+    enabled: true
+    url: "https://joinhandshake.com"
+    priority: 1
+    method: "scrape"   # Requires WSU login
+    note: "Requires manual login first — save session cookies"
+    
+  jobright:
+    enabled: true
+    url: "https://jobright.ai"
+    priority: 1
+    method: "api"
+    
+  h1bvisajobs:
+    enabled: true
+    url: "https://h1bvisajobs.com"
+    priority: 2
+    method: "scrape"
+    
+  usponsorMe:
+    enabled: true
+    url: "https://usponsor.me"
+    priority: 2
+    method: "scrape"
+    
+  migratemate:
+    enabled: true
+    url: "https://migratemate.co/opt-jobs/cybersecurity"
+    priority: 2
+    method: "scrape"
+    
+  builtin:
+    enabled: true
+    url: "https://builtin.com/jobs"
+    priority: 2
+    method: "scrape"
+    
+  github_new_grad:
+    enabled: true
+    url: "https://github.com/SimplifyJobs/Summer2026-Internships"
+    priority: 2
+    method: "github_api"
+    
+  wellfound:
+    enabled: true
+    url: "https://wellfound.com"
+    priority: 3
+    method: "scrape"
+    
+  wayup:
+    enabled: true
+    url: "https://wayup.com"
+    priority: 3
+    method: "scrape"
+
+  cybersecjobs:
+    enabled: true
+    url: "https://cybersecjobs.com"
+    priority: 2
+    method: "scrape"
+
+# ── HIGH PRIORITY TARGET COMPANIES ─────────────────────────────
+target_companies:
+  tier1:  # Apply immediately when they post
+    - "Fortress SRM"
+    - "Wright State University"
+    - "MITRE"
+    - "Cleveland Clinic"
+    - "OhioHealth"
+    - "Deloitte"
+    - "Accenture"
+    - "EY"
+    - "KPMG"
+    - "PwC"
+  tier2:
+    - "Rapid7"
+    - "CrowdStrike"
+    - "SentinelOne"
+    - "Bishop Fox"
+    - "NCC Group"
+    - "Coalfire"
+    - "Cognizant"
+    - "TCS"
+    - "Capital One"
+  tier3:
+    - "Palo Alto Networks"
+    - "Microsoft"
+    - "Amazon"
+    - "Google"
+    - "Arctic Wolf"
+    - "Optiv"
+    - "Secureworks"
+
+# ── NOTIFICATION SETTINGS ──────────────────────────────────────
+notifications:
+  send_time: "08:00"          # Daily digest time
+  channels:
+    email: true
+    telegram: true
+  digest_email: "rangarajusaivivek@gmail.com"
+  min_jobs_to_notify: 1       # Send digest even with 1 new job
+
+# ── OUTPUT SETTINGS ────────────────────────────────────────────
+output:
+  save_to_csv: true
+  csv_path: "data/jobs_tracker.csv"
+  save_to_excel: true
+  excel_path: "data/jobs_tracker.xlsx"
+  cold_emails_path: "data/cold_emails/"
+  log_path: "data/scanner.log"
