@@ -65,26 +65,38 @@ COMPANY_CAREER_PAGES = [
     {
         "company": "Rapid7",
         "url": "https://www.rapid7.com/company/careers/",
-        "search_url": "https://api.greenhouse.io/v1/boards/rapid7/jobs?content=true",
+        "search_url": "https://boards.greenhouse.io/rapid7",
         "keywords": ["security", "analyst", "engineer", "intern", "soc", "pentest"],
     },
     {
         "company": "CrowdStrike",
-        "url": "https://careers.crowdstrike.com",
-        "search_url": "https://careers.crowdstrike.com/us/en/search-results?keywords=security+analyst",
-        "keywords": ["analyst", "intern", "threat", "intelligence", "soc"],
+        "url": "https://boards.greenhouse.io/crowdstrikeinc",
+        "search_url": "https://boards.greenhouse.io/crowdstrikeinc",
+        "keywords": ["analyst", "intern", "threat", "intelligence", "soc", "security"],
     },
     {
         "company": "Deloitte",
-        "url": "https://apply.deloitte.com",
-        "search_url": "https://apply.deloitte.com/careers/SearchJobs/cyber?3_59_3=5549",
-        "keywords": ["cyber", "analyst", "intern", "associate"],
+        "url": "https://apply.deloitte.com/careers/SearchJobs/cyber",
+        "search_url": "https://apply.deloitte.com/careers/SearchJobs/cybersecurity%20analyst",
+        "keywords": ["cyber", "analyst", "intern", "associate", "security"],
     },
     {
         "company": "MITRE",
-        "url": "https://careers.mitre.org",
+        "url": "https://careers.mitre.org/us/en/search-results?keywords=cybersecurity",
         "search_url": "https://careers.mitre.org/us/en/search-results?keywords=cybersecurity",
         "keywords": ["cybersecurity", "engineer", "researcher", "intern", "analyst"],
+    },
+    {
+        "company": "Cognizant",
+        "url": "https://careers.cognizant.com/global/en/search-results?keywords=cybersecurity",
+        "search_url": "https://careers.cognizant.com/global/en/search-results?keywords=cybersecurity",
+        "keywords": ["security", "analyst", "engineer", "soc", "cyber"],
+    },
+    {
+        "company": "Accenture",
+        "url": "https://www.accenture.com/us-en/careers/jobsearch?jk=cybersecurity",
+        "search_url": "https://www.accenture.com/us-en/careers/jobsearch?jk=cybersecurity+analyst",
+        "keywords": ["security", "analyst", "cyber", "intern", "associate"],
     },
     {
         "company": "Palo Alto Networks",
@@ -100,21 +112,21 @@ COMPANY_CAREER_PAGES = [
     },
     {
         "company": "Bishop Fox",
-        "url": "https://bishopfox.com/careers",
-        "search_url": "https://bishopfox.com/careers",
-        "keywords": ["penetration", "security", "analyst", "consultant", "intern"],
+        "url": "https://jobs.lever.co/bishopfox",
+        "search_url": "https://jobs.lever.co/bishopfox",
+        "keywords": ["penetration", "security", "analyst", "consultant", "intern", "engineer"],
     },
     {
         "company": "Arctic Wolf",
-        "url": "https://arcticwolf.com/company/careers/",
-        "search_url": "https://arcticwolf.com/company/careers/",
+        "url": "https://boards.greenhouse.io/arcticwolf",
+        "search_url": "https://boards.greenhouse.io/arcticwolf",
         "keywords": ["analyst", "soc", "security", "intern", "engineer"],
     },
     {
         "company": "Coalfire",
-        "url": "https://www.coalfire.com/careers",
-        "search_url": "https://www.coalfire.com/careers",
-        "keywords": ["analyst", "security", "intern", "consultant", "pen"],
+        "url": "https://jobs.lever.co/coalfire",
+        "search_url": "https://jobs.lever.co/coalfire",
+        "keywords": ["analyst", "security", "intern", "consultant", "pen", "engineer"],
     },
 ]
 
@@ -485,7 +497,7 @@ def scrape_welcometocyber(max_results=20):
     jobs = []
     url = "https://welcometocyber.com/jobs/"
     try:
-        resp = httpx.get(url, headers=HEADERS, timeout=15, follow_redirects=True)
+        resp = httpx.get(url, headers=HEADERS, timeout=30, follow_redirects=True)
         soup = BeautifulSoup(resp.text, "lxml")
         cards = soup.select("article, div.job-listing, .job-post, li.job")
 
@@ -530,45 +542,83 @@ def scrape_builtin(max_results=20):
     """Scrapes Builtin.com -- tech company security roles."""
     jobs = []
     urls = [
-        "https://builtin.com/jobs/cybersecurity?page=1",
-        "https://builtin.com/jobs/security-engineer?page=1",
+        "https://builtin.com/jobs/cybersecurity",
+        "https://builtin.com/jobs/dev-engineer/security-engineer",
+        "https://builtin.com/jobs/data-analytics/security",
     ]
     for url in urls:
         try:
-            resp = httpx.get(url, headers=HEADERS, timeout=15, follow_redirects=True)
+            resp = httpx.get(url, headers=HEADERS, timeout=20, follow_redirects=True)
             soup = BeautifulSoup(resp.text, "lxml")
-            cards = soup.select("article.job-card, div[data-id]")
+
+            # Builtin uses multiple possible structures - try all
+            cards = (soup.select("li[data-id]") or
+                     soup.select("div[class*='JobCard']") or
+                     soup.select("article[class*='job']") or
+                     soup.select("div[class*='job-listing']"))
+
+            # Also try grabbing all job links from the page
+            if not cards:
+                links = soup.select("a[href*='/job/']")
+                for link in links[:10]:
+                    title = link.get_text(strip=True)
+                    job_url = link.get("href", "")
+                    if not job_url.startswith("http"):
+                        job_url = f"https://builtin.com{job_url}"
+                    if title and len(title) > 5:
+                        jobs.append({
+                            "id":          make_id(title, "Unknown", job_url),
+                            "title":       title,
+                            "company":     "See listing",
+                            "location":    "US",
+                            "url":         job_url,
+                            "description": "",
+                            "salary":      "",
+                            "posted_date": "",
+                            "source":      "Builtin",
+                            "apply_url":   job_url,
+                            "job_type":    detect_job_type(title),
+                            "opt_flag":    False,
+                            "h1b_flag":    False,
+                        })
+                continue
 
             for card in cards[:10]:
-                title_el  = card.select_one("a.job-title, h2 a, .job-name")
-                company_el= card.select_one(".company-name, [class*='company']")
-                loc_el    = card.select_one(".location, [class*='location']")
-                link_el   = card.select_one("a[href*='/job/']")
+                title_el  = (card.select_one("a[data-cy='job-title-link']") or
+                             card.select_one("h2 a") or
+                             card.select_one("a.job-title") or
+                             card.select_one("a[href*='/job/']"))
+                company_el= (card.select_one("[data-cy='company-title-link']") or
+                             card.select_one(".company-name") or
+                             card.select_one("[class*='company']"))
+                loc_el    = (card.select_one("[data-cy='job-location']") or
+                             card.select_one(".location"))
 
                 if not title_el:
                     continue
 
                 title   = title_el.get_text(strip=True)
-                company = company_el.get_text(strip=True) if company_el else "Unknown"
-                job_url = link_el.get("href","") if link_el else ""
+                company = company_el.get_text(strip=True) if company_el else "See listing"
+                job_url = title_el.get("href","")
                 if job_url and not job_url.startswith("http"):
                     job_url = f"https://builtin.com{job_url}"
 
-                jobs.append({
-                    "id":          make_id(title, company, job_url),
-                    "title":       title,
-                    "company":     company,
-                    "location":    loc_el.get_text(strip=True) if loc_el else "US",
-                    "url":         job_url,
-                    "description": "",
-                    "salary":      "",
-                    "posted_date": "",
-                    "source":      "Builtin",
-                    "apply_url":   job_url,
-                    "job_type":    detect_job_type(title),
-                    "opt_flag":    False,
-                    "h1b_flag":    False,
-                })
+                if title and len(title) > 3:
+                    jobs.append({
+                        "id":          make_id(title, company, job_url),
+                        "title":       title,
+                        "company":     company,
+                        "location":    loc_el.get_text(strip=True) if loc_el else "US",
+                        "url":         job_url,
+                        "description": "",
+                        "salary":      "",
+                        "posted_date": "",
+                        "source":      "Builtin",
+                        "apply_url":   job_url,
+                        "job_type":    detect_job_type(title),
+                        "opt_flag":    False,
+                        "h1b_flag":    False,
+                    })
             time.sleep(1.5)
         except Exception as e:
             log.warning(f"Builtin scrape failed: {e}")
